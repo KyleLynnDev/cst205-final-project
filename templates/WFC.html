@@ -17,7 +17,7 @@
         <p>Upload an image and observe how this program generates pixel art using the Wave Function Collapse algorithm!</p>
     </div>
 
-    <nav class="navbar navbar-expand-lg bg-black navbar-dark mb-0">
+    <nav class="navbar navbar-expand-lg bg-black navbar-dark mb-4">
         <div class="container-fluid">
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
@@ -40,6 +40,33 @@
             </div>
         </div>
     </nav>
+
+<!-- Display the image once we've generated it  -->
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <!-- Output Image -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white text-center">
+                        <h5 class="mb-0">Generated Output</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <p class="mb-3">Output: <code>static/images/WFC/WFCOutput/output.png</code></p>
+                        <div class="border rounded p-3" style="background-color: #f8f9fa; min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                            <img src="{{ url_for('static', filename='images/WFC/WFCOutput/output.png') }}?{{ range(1, 10000) | random }}" 
+                                 alt="Generated Output" 
+                                 class="img-fluid" 
+                                 style="max-width: 100%;"
+                                 onerror="this.onerror=null; this.alt='No output yet. Run WFC.py first!';">
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <small class="text-muted">Run <code>python WFC.py</code> to generate</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
