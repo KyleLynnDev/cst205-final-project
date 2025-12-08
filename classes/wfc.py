@@ -1,6 +1,8 @@
 """
 Wave Function Collapse Implementation in Python 
 Simple tile-based image generation
+
+based on this video: https://youtu.be/rI_y2GAlQFM?si=7CYuEJkDGim_zUD5 
 """
 
 from PIL import Image
@@ -55,58 +57,367 @@ class Cell:
             return f"Cell({len(self.options)} options)"
 
 
+# ==================== TILE CONFIGURATION SYSTEM ====================
+
+# Define what connections each tile type has
+# Connections: up, down, left, right
+# Use descriptive tags for connection types (e.g., 'road', 'building', 'grass', None for no connection)
+
+TILE_CONFIGS = {
+    'blank': {
+        'file': 'blank.png',
+        'connections': {
+            'up': None,      # No connection upward
+            'down': None,    # No connection downward
+            'left': None,    # No connection left
+            'right': None    # No connection right
+        },
+        'description': 'Empty tile - endpoint for roads'
+    },
+
+        'forest': {
+        'file': 'forest.png',
+        'connections': {
+            'up': None,      # No connection upward
+            'down': None,    # No connection downward
+            'left': None,    # No connection left
+            'right': None    # No connection right
+        },
+        'description': 'forested tile'
+    },
+
+    'vertical_road': {
+        'file': 'v_road.png',
+        'connections': {
+            'up': 'road',
+            'down': 'road',
+            'left': None,
+            'right': None
+        },
+        'description': 'Straight vertical road'
+    },
+    'horizontal_road': {
+        'file': 'h_road.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': 'road',
+            'right': 'road'
+        },
+        'description': 'Straight horizontal road'
+    },
+    'road_4way': {
+        'file': '4_road.png',
+        'connections': {
+            'up': 'road',
+            'down': 'road',
+            'left': 'road',
+            'right': 'road'
+        },
+        'description': '4-way intersection'
+    },
+    'corner_left_down': {
+        'file': 'road_corner_left_down.png',
+        'connections': {
+            'up': None,
+            'down': 'road',
+            'left': 'road',
+            'right': None
+        },
+        'description': 'Road corner connecting left and down'
+    },
+    'corner_left_up': {
+        'file': 'road_corner_left_up.png',
+        'connections': {
+            'up': 'road',
+            'down': None,
+            'left': 'road',
+            'right': None
+        },
+        'description': 'Road corner connecting left and up'
+    },
+    'corner_right_down': {
+        'file': 'road_corner_right_down.png',
+        'connections': {
+            'up': None,
+            'down': 'road',
+            'left': None,
+            'right': 'road'
+        },
+        'description': 'Road corner connecting right and down'
+    },
+    'corner_right_up': {
+        'file': 'road_corner_right_up.png',
+        'connections': {
+            'up': 'road',
+            'down': None,
+            'left': None,
+            'right': 'road'
+        },
+        'description': 'Road corner connecting right and up'
+    },
+    'road_vertical': {
+        'file': 'up.png',  # Uses the existing 'up' tile for now
+        'connections': {
+            'up': 'road',
+            'down': None,
+            'left': 'road',
+            'right': 'road'
+        },
+        'description': 'Road with connection up, left, right'
+    },
+    'road_horizontal': {
+        'file': 'down.png',  # Uses the existing 'down' tile for now
+        'connections': {
+            'up': None,
+            'down': 'road',
+            'left': 'road',
+            'right': 'road'
+        },
+        'description': 'Road with connection down, left, right'
+    },
+    'road_left': {
+        'file': 'left.png',
+        'connections': {
+            'up': 'road',
+            'down': 'road',
+            'left': 'road',
+            'right': None
+        },
+        'description': 'Road with connection left, up, down'
+    },
+    'road_right': {
+        'file': 'right.png',
+        'connections': {
+            'up': 'road',
+            'down': 'road',
+            'left': None,
+            'right': 'road'
+        },
+        'description': 'Road with connection right, up, down'
+    },
+    'building_com': {
+        'file': 'building_com.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': None,
+            'right': None
+        },
+        'description': 'Commercial building'
+    },
+    'building_high_com': {
+        'file': 'building_high_com.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': None,
+            'right': None
+        },
+        'description': 'High-rise commercial building'
+    },
+    'building_res': {
+        'file': 'building_res.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': None,
+            'right': None
+        },
+        'description': 'Residential building'
+    },
+    'building_res_2': {
+        'file': 'building_res_2.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': None,
+            'right': None
+        },
+        'description': 'Residential building variant 2'
+    },
+    'building_small_res': {
+        'file': 'building_small_res.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': None,
+            'right': None
+        },
+        'description': 'Small residential building'
+    },
+
+    'building_factory': {
+        'file': 'building_factory.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': None,
+            'right': None
+        },
+        'description': 'large industrial factory building'
+    },
+
+        'building_warehouse': {
+        'file': 'building_warehouse.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': None,
+            'right': None
+        },
+        'description': 'medium industrial building'
+    },
+
+        'lake': {
+        'file': 'lake.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': None,
+            'right': None
+        },
+        'description': 'forest and lake'
+    }
 
 
 
 
+}
+
+# Tile weights for biasing selection during collapse
+# Higher weight = more likely to be chosen
+TILE_WEIGHTS = {
+    'building_com': 2.0,          # Commercial buildings
+    'building_high_com': 1.5,     # High-rises slightly less common
+    'building_res': 2.5,          # Residential fairly common
+    'building_res_2': 2.5,        # Residential variant
+    'building_small_res': 3.0,    # Small residential most common
+    'building_factory': 1.8,      # Industrial factory
+    'building_warehouse': 2.0,    # Industrial warehouse
+    'blank': 1.0,                 # Some blank space
+    'forest': 4.0,                 # Some forest space
+    'lake': 1.0,                 # Some forest space
+
+    # Road tiles - lower weights to make roads less common
+    'vertical_road': 0.6,         # Straight roads
+    'horizontal_road': 0.6,
+    'corner_left_down': 0.5,      # Corners
+    'corner_left_up': 0.5,
+    'corner_right_down': 0.5,
+    'corner_right_up': 0.5,
+    'road_4way': 0.4,             # Intersections rarer
+    'road_vertical': 0.2,         # 3-way intersections
+    'road_horizontal': 0.2,
+    'road_left': 0.2,
+    'road_right': 0.2,
+    # All other tiles default to weight 1.0
+}
 
 
-def load_tiles(tiles_folder=None):
-
+def can_connect(connection1, connection2):
     """
-    Load all tile images from a folder into an array.
+    Check if two connection types can connect to each other.
     
     Args:
-        tiles_folder: Path to folder containing tile PNG images
+        connection1: Connection type from first tile (e.g., 'road', None)
+        connection2: Connection type from second tile (e.g., 'road', None)
+    
+    Returns:
+        True if the connections are compatible, False otherwise
+    """
+    # Both must be the same type to connect (or both None to not connect)
+    return connection1 == connection2
+
+
+def load_tiles_from_config(tile_configs=TILE_CONFIGS):
+    """
+    Load tiles based on configuration dictionary.
+    
+    Args:
+        tile_configs: Dictionary mapping tile names to their configuration
     
     Returns:
         List of dictionaries, each containing:
             - 'index': tile index number
-            - 'name': filename without extension
+            - 'name': tile name from config
             - 'image': PIL Image object
-            - 'path': full path to the image
+            - 'connections': dictionary of connections (up, down, left, right)
+            - 'description': tile description
     """
+    # Get tiles folder path
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    tiles_folder = os.path.join(script_dir, "..", "static", "images", "WFC", "WFCTiles", "basic_tiles")
+    tiles_folder = os.path.normpath(tiles_folder)
+    
+    tiles = []
+    
+    print(f"Loading tiles from config...")
+    print(f"Tiles folder: {tiles_folder}")
+    
+    print("\nTile Index | Name              | Connections")
+    print("-" * 65)
+    
+    # Load each tile from config
+    for index, (tile_name, config) in enumerate(tile_configs.items()):
+        tile_path = os.path.join(tiles_folder, config['file'])
+        
+        if not os.path.exists(tile_path):
+            print(f"WARNING: Tile file not found: {tile_path}")
+            continue
+        
+        try:
+            img = Image.open(tile_path)
+            
+            tile_data = {
+                'index': index,
+                'name': tile_name,
+                'image': img,
+                'path': tile_path,
+                'connections': config['connections'],
+                'description': config.get('description', '')
+            }
+            
+            tiles.append(tile_data)
+            
+            # Format connections for display
+            conn = config['connections']
+            conn_str = f"U:{conn['up'] or '×'} D:{conn['down'] or '×'} L:{conn['left'] or '×'} R:{conn['right'] or '×'}"
+            print(f"     {index:2d}    | {tile_name:16s} | {conn_str}")
+            
+        except Exception as e:
+            print(f"ERROR loading {tile_path}: {e}")
+    
+    print(f"\nSuccessfully loaded {len(tiles)} tiles (indices 0-{len(tiles)-1})")
+    return tiles
 
 
-    # Default to basic_tiles folder - use absolute path from script location
+# Keep the old function for backward compatibility
+def load_tiles(tiles_folder=None):
+    """Load tiles from folder (legacy function)."""
     if tiles_folder is None:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         tiles_folder = os.path.join(script_dir, "..", "static", "images", "WFC", "WFCTiles", "basic_tiles")
-        tiles_folder = os.path.normpath(tiles_folder)  # Clean up the path
-    
+        tiles_folder = os.path.normpath(tiles_folder)
 
     tiles = []
     
     print(f"Loading tiles from: {tiles_folder}")
     
-    # Check if folder exists
     if not os.path.exists(tiles_folder):
         print(f"ERROR: Tiles folder not found: {tiles_folder}")
         return tiles
-    
 
-    # Get all PNG files in the folder
     tile_files = [f for f in os.listdir(tiles_folder) if f.endswith('.png')]
-    tile_files.sort()  # Sort for consistent ordering
+    tile_files.sort()
     
     print(f"Found {len(tile_files)} tile files")
     print("\nTile Index | Name           | Size")
     print("-" * 45)
     
-    # Load each tile with enumeration
     for index, tile_file in enumerate(tile_files):
         tile_path = os.path.join(tiles_folder, tile_file)
-        tile_name = os.path.splitext(tile_file)[0]  # Remove .png extension
+        tile_name = os.path.splitext(tile_file)[0]
         
         try:
             tile_image = Image.open(tile_path)
@@ -122,6 +433,65 @@ def load_tiles(tiles_folder=None):
     
     print(f"\nSuccessfully loaded {len(tiles)} tiles (indices 0-{len(tiles)-1})")
     return tiles
+
+
+def setup_adjacency_rules_from_connections(tiles):
+    """
+    Automatically generate adjacency rules based on tile connections.
+    Two tiles can be adjacent if their facing connections match.
+    
+    Args:
+        tiles: List of tile dictionaries with 'connections' field
+    
+    Returns:
+        Dictionary mapping tile indices to their valid neighbors
+    """
+    adjacency = {}
+    
+    print("\n=== Auto-generating Adjacency Rules from Connections ===")
+    
+    for tile in tiles:
+        tile_idx = tile['index']
+        tile_name = tile['name']
+        tile_conn = tile['connections']
+        
+        adjacency[tile_idx] = {
+            'up': [],
+            'down': [],
+            'left': [],
+            'right': []
+        }
+        
+        # Check each other tile to see if it can be adjacent
+        for other_tile in tiles:
+            other_idx = other_tile['index']
+            other_conn = other_tile['connections']
+            
+            # Can other_tile be ABOVE this tile?
+            # This tile's UP connection must match other tile's DOWN connection
+            if can_connect(tile_conn['up'], other_conn['down']):
+                adjacency[tile_idx]['up'].append(other_idx)
+            
+            # Can other_tile be BELOW this tile?
+            # This tile's DOWN connection must match other tile's UP connection
+            if can_connect(tile_conn['down'], other_conn['up']):
+                adjacency[tile_idx]['down'].append(other_idx)
+            
+            # Can other_tile be LEFT of this tile?
+            # This tile's LEFT connection must match other tile's RIGHT connection
+            if can_connect(tile_conn['left'], other_conn['right']):
+                adjacency[tile_idx]['left'].append(other_idx)
+            
+            # Can other_tile be RIGHT of this tile?
+            # This tile's RIGHT connection must match other tile's LEFT connection
+            if can_connect(tile_conn['right'], other_conn['left']):
+                adjacency[tile_idx]['right'].append(other_idx)
+        
+        print(f"Tile {tile_idx} ({tile_name:16s}): up={adjacency[tile_idx]['up']}, "
+              f"down={adjacency[tile_idx]['down']}, left={adjacency[tile_idx]['left']}, right={adjacency[tile_idx]['right']}")
+    
+    print(f"Adjacency rules configured for {len(adjacency)} tiles\n")
+    return adjacency
 
 
 def setup_adjacency_rules(tiles):
@@ -390,6 +760,31 @@ def render_grid_snapshot(grid, tiles, tiles_x, tiles_y, tile_size, output_path):
     img.save(output_path)
 
 
+def weighted_random_choice(options, tiles):
+    """
+    Choose a random tile from options, weighted by TILE_WEIGHTS.
+    
+    Args:
+        options: List of tile indices to choose from
+        tiles: List of tile dictionaries
+    
+    Returns:
+        Chosen tile index
+    """
+    import random
+    
+    # Get weights for each option
+    weights = []
+    for tile_idx in options:
+        tile_name = tiles[tile_idx]['name']
+        weight = TILE_WEIGHTS.get(tile_name, 1.0)
+        weights.append(weight)
+    
+    # Use random.choices for weighted selection
+    chosen = random.choices(options, weights=weights, k=1)[0]
+    return chosen
+
+
 def collapse_wfc(grid, tiles, adjacency, tiles_x, tiles_y, max_iterations=1000, save_steps=False, tile_size=16):
     """
     Main Wave Function Collapse algorithm.
@@ -431,12 +826,13 @@ def collapse_wfc(grid, tiles, adjacency, tiles_x, tiles_y, max_iterations=1000, 
         x, y = cell_coords
         cell = grid[y][x]
         
-        # Collapse this cell to a random valid option
+        # Collapse this cell to a weighted random valid option
         if len(cell.options) == 0:
             print(f"ERROR: Cell at ({x},{y}) has no valid options!")
             break
         
-        chosen_tile = random.choice(cell.options)
+        # Apply weights to tile selection
+        chosen_tile = weighted_random_choice(cell.options, tiles)
         cell.collapse(chosen_tile)
         
         # Propagate constraints to neighbors
@@ -462,6 +858,77 @@ def collapse_wfc(grid, tiles, adjacency, tiles_x, tiles_y, max_iterations=1000, 
     return iteration
 
 
+def replace_blanks_with_buildings(grid, tiles, tiles_x, tiles_y):
+    """
+    Post-process the grid to replace blank tiles with random building tiles.
+    
+    Args:
+        grid: 2D array of Cell objects
+        tiles: List of tile dictionaries
+        tiles_x: Width of grid
+        tiles_y: Height of grid
+    
+    Returns:
+        Number of tiles replaced
+    """
+    import random
+    
+    # Load building tiles
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    tiles_folder = os.path.join(script_dir, "..", "static", "images", "WFC", "WFCTiles", "basic_tiles")
+    tiles_folder = os.path.normpath(tiles_folder)
+    
+    building_files = ['building.png', 'building_n.png', 'building_e.png', 'building_s.png', 'building_w.png']
+    building_images = []
+    
+    for building_file in building_files:
+        building_path = os.path.join(tiles_folder, building_file)
+        if os.path.exists(building_path):
+            try:
+                img = Image.open(building_path)
+                building_images.append(img)
+            except Exception as e:
+                print(f"Warning: Could not load {building_file}: {e}")
+    
+    if not building_images:
+        print("Warning: No building images found!")
+        return 0
+    
+    print(f"\n=== Replacing blank tiles with {len(building_images)} building variations ===")
+    
+    # Find the index of the blank tile
+    blank_idx = None
+    for tile in tiles:
+        if tile['name'] == 'blank':
+            blank_idx = tile['index']
+            break
+    
+    if blank_idx is None:
+        print("Warning: No blank tile found!")
+        return 0
+    
+    # Replace all blank tiles with random buildings
+    replaced_count = 0
+    for y in range(tiles_y):
+        for x in range(tiles_x):
+            cell = grid[y][x]
+            if cell.is_collapsed() and cell.tile_index == blank_idx:
+                # Replace with a random building
+                random_building = random.choice(building_images)
+                # Store the building image in the tiles list temporarily
+                # We'll create a new tile entry for this building
+                new_tile_idx = len(tiles)
+                tiles.append({
+                    'index': new_tile_idx,
+                    'name': f'building_replacement_{x}_{y}',
+                    'image': random_building,
+                    'path': 'runtime_generated'
+                })
+                cell.tile_index = new_tile_idx
+                replaced_count += 1
+    
+    print(f"  Replaced {replaced_count} blank tiles with buildings")
+    return replaced_count
 
 
 
@@ -469,7 +936,9 @@ def collapse_wfc(grid, tiles, adjacency, tiles_x, tiles_y, max_iterations=1000, 
 
 
 
-def setup(tile_size=16, output_width=160, output_height=160, input_image_path=None, save_steps=False):
+
+
+def setup(tile_size=16, output_width=160, output_height=160, input_image_path=None, save_steps=False, use_config=True):
    
    
     """
@@ -481,6 +950,7 @@ def setup(tile_size=16, output_width=160, output_height=160, input_image_path=No
         output_height: Height of output image in pixels
         input_image_path: Path to the input tileset image
         save_steps: Whether to save step-by-step collapse snapshots
+        use_config: If True, use TILE_CONFIGS; if False, use legacy file-based loading
     
     Returns:
         Path to the generated output image
@@ -488,12 +958,15 @@ def setup(tile_size=16, output_width=160, output_height=160, input_image_path=No
 
 
     print(f"Setup: tile_size={tile_size}, output={output_width}x{output_height}")
+    print(f"Mode: {'Config-based' if use_config else 'File-based (legacy)'}")
     
     # Load tiles
-    tiles = load_tiles()
-    
-    # Setup adjacency rules
-    adjacency = setup_adjacency_rules(tiles)
+    if use_config:
+        tiles = load_tiles_from_config(TILE_CONFIGS)
+        adjacency = setup_adjacency_rules_from_connections(tiles)
+    else:
+        tiles = load_tiles()
+        adjacency = setup_adjacency_rules(tiles)
     
     # Set default input path if none provided
     if input_image_path is None:
@@ -613,10 +1086,24 @@ def draw(tiles, adjacency, tile_size, output_width, output_height, input_path, o
     
     img.save(output_path)
     print(f"Saved image to {output_path}")
+    
+    # Save a copy to the gallery with timestamp
+    from datetime import datetime
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    ### TODO: CHANGE THIS PATH ### 
+    gallery_dir = "static/images/gallery" 
+
+    os.makedirs(gallery_dir, exist_ok=True)
+    gallery_path = os.path.join(gallery_dir, f"city_{timestamp}.png")
+    img.save(gallery_path)
+    print(f"Saved copy to gallery: {gallery_path}")
+    
 if __name__ == "__main__":
-    # Test the functions
-    print("Testing WFC.py...")
-    output = setup(tile_size=16, output_width=160, output_height=160, save_steps=True)
+    # Test the functions with new config system
+    print("Testing WFC.py with config-based tiles...")
+    print("="*60)
+    output = setup(tile_size=16, output_width=160, output_height=160, save_steps=True, use_config=True)
     print(f"Done! Check {output}")
     print(f"Step-by-step snapshots saved to static/images/WFC/WFCOutput/steps/")
 
