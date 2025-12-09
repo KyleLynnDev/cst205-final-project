@@ -278,9 +278,42 @@ TILE_CONFIGS = {
             'right': None
         },
         'description': 'forest and lake'
+    },
+
+        'stadium': {
+        'file': 'stadium.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': None,
+            'right': None
+        },
+        'description': 'stadium'
+    },
+
+        'power plant': {
+        'file': 'power_plant.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': None,
+            'right': None
+        },
+        'description': 'nuclear power plant'
+    },
+
+        'amusement park': {
+        'file': 'amusement_park.png',
+        'connections': {
+            'up': None,
+            'down': None,
+            'left': None,
+            'right': None
+        },
+        'description': 'an amusement park'
     }
 
-
+    
 
 
 }
@@ -288,25 +321,27 @@ TILE_CONFIGS = {
 # Tile weights for biasing selection during collapse
 # Higher weight = more likely to be chosen
 TILE_WEIGHTS = {
-    'building_com': 2.0,          # Commercial buildings
+    'building_com': 1.0,          # Commercial buildings
     'building_high_com': 1.5,     # High-rises slightly less common
-    'building_res': 2.5,          # Residential fairly common
+    'building_res': 1.5,          # Residential fairly common
     'building_res_2': 2.5,        # Residential variant
-    'building_small_res': 3.0,    # Small residential most common
+    'building_small_res': 2.0,    # Small residential most common
     'building_factory': 1.8,      # Industrial factory
     'building_warehouse': 2.0,    # Industrial warehouse
-    'blank': 1.0,                 # Some blank space
-    'forest': 4.0,                 # Some forest space
+    'blank': 0.5,                 # Some blank space
+    'forest': 3.0,                 # Some forest space
     'lake': 1.0,                 # Some forest space
-
+    'stadium': 0.1,                 # Some forest space
+    'power plant': 0.1,            # Some forest space
+    'amusement park': 0.1,         # Some forest space
     # Road tiles - lower weights to make roads less common
-    'vertical_road': 0.6,         # Straight roads
-    'horizontal_road': 0.6,
+    'vertical_road': 1.0,         # Straight roads
+    'horizontal_road': 1.0,
     'corner_left_down': 0.5,      # Corners
     'corner_left_up': 0.5,
     'corner_right_down': 0.5,
     'corner_right_up': 0.5,
-    'road_4way': 0.4,             # Intersections rarer
+    'road_4way': 0.1,             # Intersections rarer
     'road_vertical': 0.2,         # 3-way intersections
     'road_horizontal': 0.2,
     'road_left': 0.2,
@@ -1103,7 +1138,7 @@ if __name__ == "__main__":
     # Test the functions with new config system
     print("Testing WFC.py with config-based tiles...")
     print("="*60)
-    output = setup(tile_size=16, output_width=160, output_height=160, save_steps=True, use_config=True)
+    output = setup(tile_size=16, output_width=256, output_height=256, save_steps=True, use_config=True)
     print(f"Done! Check {output}")
     print(f"Step-by-step snapshots saved to static/images/WFC/WFCOutput/steps/")
 

@@ -18,6 +18,8 @@
             height: auto;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
+            width: 640px;  /* Double the 320x320 scaled size */
+            max-width: 640px;
         }
         .controls {
             margin-top: 20px;
@@ -85,15 +87,15 @@
                     <img id="stepImage" src="" alt="WFC Step" class="border rounded">
                     
                     <div class="controls">
-                        <button class="btn btn-primary btn-control" onclick="firstStep()">⏮ First</button>
-                        <button class="btn btn-primary btn-control" onclick="prevStep()">⏪ Prev</button>
-                        <button class="btn btn-success btn-control" id="playBtn" onclick="togglePlay()">▶ Play</button>
-                        <button class="btn btn-primary btn-control" onclick="nextStep()">Next ⏩</button>
-                        <button class="btn btn-primary btn-control" onclick="lastStep()">Last ⏭</button>
+                        <button class="btn btn-primary btn-control" onclick="firstStep()">First</button>
+                        <button class="btn btn-primary btn-control" onclick="prevStep()">Prev</button>
+                        <button class="btn btn-success btn-control" id="playBtn" onclick="togglePlay()">Play</button>
+                        <button class="btn btn-primary btn-control" onclick="nextStep()">Next</button>
+                        <button class="btn btn-primary btn-control" onclick="lastStep()">Last</button>
                     </div>
                     
                     <div class="mt-4">
-                        <button class="btn btn-lg btn-success" onclick="location.reload()">🔄 Generate New City</button>
+                        <button class="btn btn-lg btn-success" onclick="location.reload()"> Generate New City</button>
                     </div>
                 </div>
             </div>
@@ -156,7 +158,7 @@
         
         function startPlay() {
             isPlaying = true;
-            document.getElementById('playBtn').innerHTML = '⏸ Pause';
+            document.getElementById('playBtn').innerHTML = 'Pause';
             playInterval = setInterval(() => {
                 if (currentStep >= steps.length - 1) {
                     stopPlay();
@@ -168,7 +170,7 @@
         
         function stopPlay() {
             isPlaying = false;
-            document.getElementById('playBtn').innerHTML = '▶ Play';
+            document.getElementById('playBtn').innerHTML = 'Play';
             if (playInterval) {
                 clearInterval(playInterval);
                 playInterval = null;
