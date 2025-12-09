@@ -3,21 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Wave Function Collapse - Pixel Shop</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .image-display {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        #stepImage {
+            max-width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            width: 640px;  /* Double the 320x320 scaled size */
+            max-width: 640px;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        .step-info {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .btn-control {
+            margin: 5px;
+        }
+        #speedControl {
+            width: 200px;
+        }
+    </style>
 </head>
 
 <body>
-
 
     <div class="text-center p-5 mb-0 bg-primary text-white">
         <h1>pixle shop</h1>
         <h2>Wave Function Collapse!</h2>
         <br>
-        <p>Upload an image and observe how this program generates pixel art using the Wave Function Collapse algorithm!</p>
+        <p>Refresh the page to generate a new tiny town image! This is an implementation of the wave function collapse algorithm to procedurally generate a pixel art city.</p>
     </div>
 
-    <nav class="navbar navbar-expand-lg bg-black navbar-dark mb-0">
+    <nav class="navbar navbar-expand-lg bg-black navbar-dark mb-4">
         <div class="container-fluid">
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
@@ -41,5 +72,123 @@
         </div>
     </nav>
 
+    <!-- Step-by-Step Viewer -->
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 mb-4">
+                <div class="image-display">
+                    <h3 class="mb-3">Wave Function Collapse - Step by Step</h3>
+                    <div class="step-info">
+                        <span id="stepNumber">Step 0</span> / <span id="totalSteps">0</span>
+                        <br>
+                        <small class="text-muted">Grey squares = uncollapsed cells | Watch the city build tile by tile!</small>
+                    </div>
+                    
+                    <img id="stepImage" src="" alt="WFC Step" class="border rounded">
+                    
+                    <div class="controls">
+                        <button class="btn btn-primary btn-control" onclick="firstStep()">First</button>
+                        <button class="btn btn-primary btn-control" onclick="prevStep()">Prev</button>
+                        <button class="btn btn-success btn-control" id="playBtn" onclick="togglePlay()">Play</button>
+                        <button class="btn btn-primary btn-control" onclick="nextStep()">Next</button>
+                        <button class="btn btn-primary btn-control" onclick="lastStep()">Last</button>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button class="btn btn-lg btn-success" onclick="location.reload()"> Generate New City</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate array of all 100 step filenames
+        const steps = [];
+        for (let i = 1; i <= 100; i++) {
+            steps.push(`step_${String(i).padStart(3, '0')}.png`);
+        }
+        
+        let currentStep = 0;
+        let isPlaying = false;
+        let playInterval = null;
+        let animationSpeed = 100;  // Fixed at 100ms
+        
+        document.getElementById('totalSteps').textContent = steps.length - 1;
+        
+        function showStep(stepIndex) {
+            if (stepIndex < 0) stepIndex = 0;
+            if (stepIndex >= steps.length) stepIndex = steps.length - 1;
+            
+            currentStep = stepIndex;
+            const imgPath = `/static/images/WFC/WFCOutput/steps/${steps[stepIndex]}?t=${Date.now()}`;
+            document.getElementById('stepImage').src = imgPath;
+            document.getElementById('stepNumber').textContent = `Step ${stepIndex}`;
+        }
+        
+        function firstStep() {
+            stopPlay();
+            showStep(0);
+        }
+        
+        function prevStep() {
+            stopPlay();
+            showStep(currentStep - 1);
+        }
+        
+        function nextStep() {
+            showStep(currentStep + 1);
+            if (currentStep >= steps.length - 1) {
+                stopPlay();
+            }
+        }
+        
+        function lastStep() {
+            stopPlay();
+            showStep(steps.length - 1);
+        }
+        
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                startPlay();
+            }
+        }
+        
+        function startPlay() {
+            isPlaying = true;
+            document.getElementById('playBtn').innerHTML = 'Pause';
+            playInterval = setInterval(() => {
+                if (currentStep >= steps.length - 1) {
+                    stopPlay();
+                    return;
+                }
+                nextStep();
+            }, animationSpeed);
+        }
+        
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById('playBtn').innerHTML = 'Play';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevStep();
+            if (e.key === 'ArrowRight') nextStep();
+            if (e.key === ' ') {
+                e.preventDefault();
+                togglePlay();
+            }
+        });
+        
+        // Load first step on page load
+        showStep(0);
+    </script>
 </body>
 </html>
