@@ -2,14 +2,20 @@ from flask import Flask, redirect, render_template, request, url_for
 from PIL import Image
 import sys
 import os
-
-# Import WFC module (lowercase wfc.py)
-from classes.wfc import setup
-import os
+from werkzeug.utils import secure_filename
 from datetime import datetime
+
+from classes.wfc import setup
+from classes.dotify import dotify
 
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+GENERATED_FOLDER = "static/images/generated"
+os.makedirs(GENERATED_FOLDER, exist_ok=True)
 
 @app.route('/')
 def home():
@@ -61,6 +67,31 @@ def pixelArt_image():
 
   
     return render_template("pixelArt.html", output_image=f"/{GALLERY_FOLDER}/{output_filename}")
+
+
+@app.route('/dotted', methods=['GET', 'POST'])
+def dotted_page():
+    if request.method == 'POST':
+        file = request.files.get('image')
+        if not file or file.filename == '':
+            return render_template('dotted.html', result_url=None)
+        filename = secure_filename(file.filename)
+        ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'png'
+        if ext not in ALLOWED_EXTENSIONS:
+            ext = 'png'
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
+        out_name = f"dotted_{timestamp}.png"
+        out_path = os.path.join(GENERATED_FOLDER, out_name)
+        bg_color = request.form.get('bg_color', '#ffffff')
+        dot_color = request.form.get('dot_color', '#000000')
+        try:
+            multiplier = int(request.form.get('multiplier', 50))
+        except Exception:
+            multiplier = 50
+        dotify(file, out_path, multiplier=multiplier, bg_color=bg_color, dot_color=dot_color)
+        result_url = f"/{GENERATED_FOLDER}/{out_name}"
+        return render_template('dotted.html', result_url=result_url)
+    return render_template('dotted.html')
 
 
 GALLERY_FOLDER = "static/images/gallery"
