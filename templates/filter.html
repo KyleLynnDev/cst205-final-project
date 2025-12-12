@@ -1,124 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        pre {
-            background: #1e1e1e;
-            color: #00ff7f;
-            padding: 20px;
-            border-radius: 10px;
-            overflow-x: auto;
-            font-size: 14px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Image Filter</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body>
+<div class="text-center p-5 bg-primary text-white">
+    <h1>Pixel Shop</h1>
+</div>
 
-    <div class="text-center p-5 mb-0 bg-primary text-white">
-        <h1>pixle shop</h1>
-    </div>
+<div class="container mt-4 text-center">
+    <h2>Image Filter</h2>
 
-    <nav class="navbar navbar-expand-lg bg-black navbar-dark mb-0">
-        <div class="container-fluid">
-            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/wavefunctioncollapse">Wave Function Collapse</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Filter</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/pixelate">Pixel Art</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">I dont know </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <input type="file" id="upload" accept="image/*" class="form-control mt-3">
+    <canvas id="canvas" class="border mt-3"></canvas>
+    <button class="btn btn-primary mt-3" onclick="apply()">Apply Random Filter</button>
+</div>
 
-    <h2 class="text-center mt-4">Backend Code (app.py)</h2>
-    <pre><code>
-from flask import Flask, redirect, render_template, request, url_for
-from PIL import Image
-import os
-from classes.wfc import setup
-from datetime import datetime
+<script>
+let img = null;
 
-app = Flask(__name__)
+document.getElementById("upload").onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    img = new Image();
+    img.onload = () => draw(img);
+    img.src = URL.createObjectURL(file);
+};
 
-GALLERY_FOLDER = "static/images/gallery"
-os.makedirs(GALLERY_FOLDER, exist_ok=True)
+function draw(image) {
+    const c = document.getElementById("canvas");
+    const x = c.getContext("2d");
+    c.width = image.width;
+    c.height = image.height;
+    x.drawImage(image, 0, 0);
+}
 
-@app.route('/')
-def home():
-    return render_template("index.html")
+function apply() {
+    if (!img) return;
 
-@app.route('/wavefunctioncollapse')
-def wavefunctioncollapsepage():
-    print("\n" + "="*60)
-    print("Running WFC from web request...")
-    print("="*60)
-    try:
-        setup(tile_size=16, output_width=160, output_height=160, save_steps=True, use_config=True)
-        print("WFC generation complete!")
-    except Exception as e:
-        print(f"Error running WFC: {e}")
-    
-    return render_template('WFC.html')
+    const c = document.getElementById("canvas");
+    const x = c.getContext("2d");
 
-@app.route('/pixelArt', methods=['GET'])
-def pixelArt_page():
-    return render_template("pixelArt.html")
+    const s = 0.1 + Math.random() * 1.9;
+    const w = img.width * s;
+    const h = img.height * s;
 
-@app.route('/pixelArt', methods=['POST'])
-def pixelArt_image():
-    file = request.files['image']
-    pixel_size = int(request.form['pixel_size'])
+    c.width = w;
+    c.height = h;
 
-    img = Image.open(file)
-    width, height = img.size
-    pixelated = Image.new("RGB", (width, height))
+    const f = Math.random() < 0.5 ? -1 : 1;
+    x.save();
+    x.scale(1, f);
+    x.drawImage(img, 0, f === 1 ? 0 : -h, w, h);
+    x.restore();
 
-    for y in range(0, height, pixel_size):
-        for x in range(0, width, pixel_size):
-            r, g, b = img.getpixel((x, y))
+    const d = x.getImageData(0, 0, w, h);
+    const p = d.data;
 
-            for yy in range(y, min(y + pixel_size, height)):
-                for xx in range(x, min(x + pixel_size, width)):
-                    pixelated.putpixel((xx, yy), (r, g, b))
+    const r = Math.random() * 120;
+    const g = Math.random() * 120;
+    const b = Math.random() * 120;
 
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
-    output_filename = f"pixelated_{timestamp}.png"
-    output_path = os.path.join(GALLERY_FOLDER, output_filename)
-    pixelated.save(output_path)
+    for (let i = 0; i < p.length; i += 4) {
+        p[i] += r;
+        p[i+1] += g;
+        p[i+2] += b;
+    }
 
-    return render_template("pixelArt.html", output_image=f"/{GALLERY_FOLDER}/{output_filename}")
-
-@app.route('/filter')
-def filter_page():
-    return render_template("filter.html")
-
-@app.route('/gallery')
-def gallery():
-    images = os.listdir(GALLERY_FOLDER)
-    images = [f"/{GALLERY_FOLDER}/{img}" for img in images]
-    return render_template("gallery.html", images=images)
-
-if __name__ == '__main__':
-    app.run(debug=True)
-    </code></pre>
+    x.putImageData(d, 0, 0);
+}
+</script>
 
 </body>
 </html>
