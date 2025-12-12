@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="text-center p-5 mb-0 bg-primary text-white">
+        <h1>Pixel Art Converter </h1>
+    </div>
+    
+    
+
+    <nav class="navbar navbar-expand-lg bg-black navbar-dark mb-0">
+        <div class="container-fluid">
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/wavefunctioncollapse">Wave Function Collapse</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Filter</a>
+                    </li>
+                   <li class="nav-item">
+                        <a class="nav-link" href="/pixelArt">Pixel Art</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Dots</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/gallery">Gallery</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="container py-5">
+
+        <div class="text-center mb-4">
+          <img src="/static/pixelArtLogo/A vibrant logo with .png" width="200px" height="200px">
+
+        </div>
+
+        <form action="/pixelArt" method="POST" enctype="multipart/form-data" class="mb-4">
+            <p class="text-center">Transform your images into pixel art! Upload an image, choose your desired pixel size, 
+            and watch as your picture is converted into a retro-style pixelated masterpiece. Perfect for 
+            creating nostalgic graphics or adding a unique touch to your photos.</p> 
+
+            <div class="mb-3">
+                <label>Please Select an Image:</label>
+                <input type="file" name="image" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label>Pixel Size:</label>
+                <input type="number" name="pixel_size" min="1" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-success">Create</button>
+        </form>
+
+        {% if output_image %}
+        <div class="card text-center border-success mb-3">
+            <div class="card-header bg-success text-white">
+                Result
+            </div>
+            <div class="card-body">
+                <img src="{{ output_image }}" class="img-fluid" style="max-width:500px;">
+            </div>
+        </div>
+        {% endif %}
+
+
+        {% if error_message %}
+        <div class="card text-center border-danger mb-3">
+            <div class="card-header bg-danger text-white">
+                Error
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ error_message }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+
+    
+</body>
+</html>
