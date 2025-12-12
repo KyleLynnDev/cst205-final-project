@@ -41,6 +41,10 @@ def pixelArt_image():
     pixel_size = int(request.form['pixel_size'])
 
 
+@app.route('/filter', methods=['GET'])
+def filter_page():
+    return render_template("filter.html")
+
 
     img = Image.open(file)
     width, height = img.size
