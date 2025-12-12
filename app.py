@@ -47,7 +47,6 @@ def pixelArt_image():
     pixel_size = int(request.form['pixel_size'])
 
 
-
     img = Image.open(file)
     width, height = img.size
     pixelated = Image.new("RGB", (width, height))
@@ -69,6 +68,7 @@ def pixelArt_image():
     return render_template("pixelArt.html", output_image=f"/{GALLERY_FOLDER}/{output_filename}")
 
 
+<<<<<<< Updated upstream
 @app.route('/dotted', methods=['GET', 'POST'])
 def dotted_page():
     if request.method == 'POST':
@@ -95,6 +95,9 @@ def dotted_page():
 
 
 GALLERY_FOLDER = "static/images/gallery"
+=======
+GALLERY_FOLDER = "static/gallery"
+>>>>>>> Stashed changes
 os.makedirs(GALLERY_FOLDER, exist_ok=True)
 
 @app.route('/gallery')
