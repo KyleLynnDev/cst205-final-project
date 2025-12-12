@@ -7,9 +7,25 @@
 </head>
 
 <body>
-<div class="text-center p-5 bg-primary text-white">
-    <h1>Pixel Shop</h1>
+
+<div class="text-center p-5 mb-0 bg-primary text-white">
+    <h1>Filter</h1>
 </div>
+
+<nav class="navbar navbar-expand-lg bg-black navbar-dark mb-0">
+    <div class="container-fluid">
+        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/wavefunctioncollapse">Wave Function Collapse</a></li>
+                <li class="nav-item"><a class="nav-link" href="/filter">Filter</a></li>
+                <li class="nav-item"><a class="nav-link" href="/pixelArt">Pixel Art</a></li>
+                <li class="nav-item"><a class="nav-link" href="/dotted">Dotted</a></li>
+                <li class="nav-item"><a class="nav-link" href="/gallery">Gallery</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
 
 <div class="container mt-4 text-center">
     <h2>Image Filter</h2>
@@ -23,11 +39,11 @@
 let img = null;
 
 document.getElementById("upload").onchange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const f = e.target.files[0];
+    if (!f) return;
     img = new Image();
     img.onload = () => draw(img);
-    img.src = URL.createObjectURL(file);
+    img.src = URL.createObjectURL(f);
 };
 
 function draw(image) {
@@ -40,7 +56,6 @@ function draw(image) {
 
 function apply() {
     if (!img) return;
-
     const c = document.getElementById("canvas");
     const x = c.getContext("2d");
 
