@@ -37,14 +37,14 @@ def wavefunctioncollapsepage():
     return render_template('WFC.html')
 
 
-@app.route('/pixelArt', methods=['GET'])
-def pixelArt_page():
-    return render_template("pixelArt.html")
+# @app.route('/pixelArt', methods=['GET'])
+# def pixelArt_page():
+#     return render_template("pixelArt.html")
 
-@app.route('/pixelArt', methods=['POST'])
-def pixelArt_image():
-    file = request.files['image']
-    pixel_size = int(request.form['pixel_size'])
+# @app.route('/pixelArt', methods=['POST'])
+# def pixelArt_image():
+#     file = request.files['image']
+#     pixel_size = int(request.form['pixel_size'])
 
 
 
@@ -111,5 +111,55 @@ def gallery():
 
 
 
+
+@app.route('/pixelArt', methods=['GET', 'POST'])
+def pixelArt_image():
+    if request.method == 'POST':
+        # Check if file was uploaded
+        if 'image' not in request.files:
+            return render_template('pixelArt.html', error_message="No image file uploaded")
+        
+        file = request.files['image']
+        
+        # Check if file was actually selected
+        if file.filename == '':
+            return render_template('pixelArt.html', error_message="No image file selected")
+        
+        # Get pixel_size from form
+        try:
+            pixel_size = int(request.form.get('pixel_size', 10))
+            if pixel_size < 1:
+                raise ValueError("Pixel size must be at least 1")
+        except (ValueError, TypeError):
+            return render_template('pixelArt.html', error_message="Invalid pixel size. Please enter a positive number.")
+        
+        try:
+            # Open and process the image
+            img = Image.open(file.stream)
+            
+            # Apply pixelation
+            small = img.resize(
+                (img.width // pixel_size, img.height // pixel_size),
+                Image.NEAREST
+            )
+            result = small.resize(img.size, Image.NEAREST)
+            
+            # Save the result
+            output_path = 'static/images/pixelated_output.png'
+            result.save(output_path)
+            
+            # Return template with output image
+            return render_template('pixelArt.html', output_image=url_for('static', filename='images/pixelated_output.png'))
+            
+        except Exception as e:
+            return render_template('pixelArt.html', error_message=f"Error processing image: {str(e)}")
+    
+    # GET request - just show the form
+    return render_template('pixelArt.html')
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+
