@@ -85,6 +85,9 @@ def dotted_page():
         if ext not in ALLOWED_EXTENSIONS:
             ext = 'png'
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
+        original_name = f"original_{timestamp}.{ext}"
+        original_path = os.path.join(GENERATED_FOLDER, original_name)
+        file.save(original_path)
         out_name = f"dotted_{timestamp}.png"
         out_path = os.path.join(GENERATED_FOLDER, out_name)
         bg_color = request.form.get('bg_color', '#ffffff')
@@ -93,9 +96,10 @@ def dotted_page():
             multiplier = int(request.form.get('multiplier', 50))
         except Exception:
             multiplier = 50
-        dotify(file, out_path, multiplier=multiplier, bg_color=bg_color, dot_color=dot_color)
+        dotify(original_path, out_path, multiplier=multiplier, bg_color=bg_color, dot_color=dot_color)
         result_url = f"/{GENERATED_FOLDER}/{out_name}"
-        return render_template('dotted.html', result_url=result_url)
+        original_url = f"/{GENERATED_FOLDER}/{original_name}"
+        return render_template('dotted.html', result_url=result_url, original_url=original_url)
     return render_template('dotted.html')
 
 
